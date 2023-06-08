@@ -1,0 +1,105 @@
+VERSION 0.6
+
+GO_MODULE:
+    COMMAND
+
+    ARG BUILDER_IMAGE=golang
+    ARG --required BUILDER_TAG
+
+    # CGo can be indispensable, but it makes maintenance more complicated.
+    ARG ENV_CGO_ENABLED=0
+
+    # Normally you want to ensure that go.mod and go.sum are tidy.
+    #
+    # Different toolchain versions might change how a tidy file looks like.
+    # This can cause problems if you build with multiple Go versions.
+    # When that happens the formatting check cannot pass on all of them.
+    ARG TIDY=true
+
+    # Normally you want to ensure source code is formatted properly.
+    #
+    # Different toolchain versions can have slight differences in formatting style.
+    # This can cause problems if you build with multiple Go versions.
+    # When that happens the formatting check cannot pass on all of them.
+    ARG FORMAT=true
+
+    FROM $BUILDER_IMAGE:$BUILDER_TAG
+
+    WORKDIR /go-work
+
+    ENV CGO_ENABLED=$ENV_CGO_ENABLED
+
+    # For many projects go.mod and go.sum change less frequently than source code.
+    # When that is the case, commands that depend only on them can be cached for longer.
+    COPY go.mod go.sum ./src
+
+    # Download dependencies.
+    # This can be cached just based on go.mod and go.sum.
+    # This can be cached based on go.mod and go.sum exclusively.
+    RUN (cd ./src && go mod download -x)
+
+    # The source code people read should be the one that gets built.
+    # Commands run during the build should not change the source code of the project.
+    # We make an addtional copy of the source code to enable the build checking this.
+    COPY . ./src
+    COPY . ./original-src
+
+    # The go.sum and go.mod files people read should be the same as the ones used during the build.
+    # If a build-related command would update either, go mod tidy will also do so.
+    #
+    # The exact behaviour can change based on the Go toolchain and go version declared in go.mod.
+    IF $TIDY
+        RUN (cd ./src && go mod tidy -e -x)
+        RUN git diff --no-index ./src ./original-src
+    END
+
+    # Verify that the source follows the standard code format.
+    #
+    # The exact format can change between Go toolchain versions.
+    IF $FORMAT
+        RUN (cd ./src && go fmt ./...)
+        RUN git diff --no-index ./src ./original-src
+    END
+
+    # Machine-generated source code that people read should be up to date.
+    # This depends on code generator configuration, inputs, and versions.
+    # If a developer forgot to rerun them before commit, the following commands will detect that.
+    RUN (cd ./src && GOBIN=/go-work/bin PATH=/go-work/bin/:$PATH go generate -x ./...)
+    RUN git diff --no-index ./src ./original-src
+
+    # Build all code in the the module.
+    RUN (cd ./src && go build -v ./...)
+
+    # Run tests of the module.
+    RUN (cd ./src && go test -shuffle=on ./...)
+    RUN git diff --no-index ./src ./original-src
+
+GO_BINARY:
+    COMMAND
+
+    ARG BUILDER_IMAGE=golang
+    ARG --required BUILDER_TAG
+
+    # CGo can be indispensable, but it makes maintenance more complicated.
+    ARG ENV_CGO_ENABLED=0
+
+    ARG --required PACKAGE
+    ARG --required OUTPUT
+    ARG REVISION
+
+
+    FROM $BUILDER_IMAGE:$BUILDER_TAG
+
+    WORKDIR /go-work
+
+    ENV CGO_ENABLED=$ENV_CGO_ENABLED
+
+    IF [ -n "$REVISION" ]
+        ENV REVISION=$REVISION
+    ELSE IF [ -n "$EARTHLY_GIT_BRANCH" ]
+        ENV REVISION=$EARTHLY_GIT_BRANCH
+    ELSE IF [ -n "$EARTHLY_GIT_HASH" ]
+        ENV REVISION=$EARTHLY_GIT_HASH
+    END
+
+    RUN go build -o $OUTPUT $PACKAGE@$REVISION
