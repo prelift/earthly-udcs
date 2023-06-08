@@ -33,6 +33,8 @@ GO_MODULE:
 
     ENV CGO_ENABLED=$ENV_CGO_ENABLED
 
+    RUN mkdir ./src
+
     # Build the entire Go standard library.
     # This takes a while, but is cached and reused.
     # That speeds up future builds.
