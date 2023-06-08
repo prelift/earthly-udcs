@@ -13,9 +13,6 @@ GO_MODULE:
     # CGo can be indispensable, but it makes maintenance more complicated.
     ARG ENV_CGO_ENABLED=0
 
-    ARG BUILD_FLAGS
-    ARG TEST_FLAGS
-
     # Normally you want to ensure that go.mod and go.sum are tidy.
     #
     # Different toolchain versions might change how a tidy file looks like.
@@ -39,7 +36,7 @@ GO_MODULE:
     # Build the entire Go standard library.
     # This takes a while, but is cached and reused.
     # That speeds up future builds.
-    RUN (cd ./src && go build $BUILD_FLAGS std)
+    RUN (cd ./src && go build std)
 
     # For many projects go.mod and go.sum change less frequently than source code.
     # When that is the case, commands that depend only on them can be cached for longer.
@@ -80,10 +77,10 @@ GO_MODULE:
     RUN git diff --no-index ./src ./original-src
 
     # Build all code in the the module.
-    RUN (cd ./src && go build $BUILD_FLAGS -v ./...)
+    RUN (cd ./src && go build -v ./...)
 
     # Run tests of the module.
-    RUN (cd ./src && go test $BUILD_FLAGS $TEST_FLAGS -shuffle=on ./...)
+    RUN (cd ./src && go test -shuffle=on ./...)
     RUN git diff --no-index ./src ./original-src
 
 GO_BINARY:
@@ -99,8 +96,6 @@ GO_BINARY:
     # CGo can be indispensable, but it makes maintenance more complicated.
     ARG ENV_CGO_ENABLED=0
 
-    ARG BUILD_FLAGS
-
     FROM $BUILDER_IMAGE:$BUILDER_TAG
 
     WORKDIR /go-work
@@ -115,4 +110,4 @@ GO_BINARY:
         ENV REVISION=$EARTHLY_GIT_HASH
     END
 
-    RUN go build -trimpath -o $OUTPUT $BUILD_FLAGS $PACKAGE@$REVISION
+    RUN go build -trimpath -o $OUTPUT $PACKAGE@$REVISION
