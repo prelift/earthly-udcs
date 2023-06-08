@@ -83,7 +83,7 @@ GO_MODULE:
 
     # Run tests of the module.
     RUN (cd ./src && go test -shuffle=on ./...)
-    RUN git diff --no-index ./src ./original-src
+    RUN --no-cache git diff --no-index ./src ./original-src
 
 GO_BINARY:
     COMMAND
