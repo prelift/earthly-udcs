@@ -36,6 +36,11 @@ GO_MODULE:
 
     ENV CGO_ENABLED=$ENV_CGO_ENABLED
 
+    # Build the entire Go standard library.
+    # This takes a while, but is cached and reused.
+    # That speeds up future builds.
+    RUN (cd ./src && go build $BUILD_FLAGS std)
+
     # For many projects go.mod and go.sum change less frequently than source code.
     # When that is the case, commands that depend only on them can be cached for longer.
     COPY go.mod go.sum ./src
