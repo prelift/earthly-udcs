@@ -4,7 +4,7 @@
 
 VERSION 0.6
 
-GO_MODULE:
+MODULE:
     COMMAND
 
     ARG BUILDER_IMAGE=golang
@@ -85,7 +85,7 @@ GO_MODULE:
     RUN (cd ./src && go test -shuffle=on ./...)
     RUN --no-cache git diff --no-index ./src ./original-src
 
-GO_BINARY:
+BINARY:
     COMMAND
 
     ARG BUILDER_IMAGE=golang
