@@ -63,8 +63,7 @@ MODULE:
     # Commands run during the build should not change the source code of the project.
     # We make an addtional copy of the source code to enable the build checking this.
     COPY . ./src
-    RUN mkdir ./original-src && \
-        cp -r ./src/* ./original-src
+    COPY . ./original-src
 
     # The go.sum and go.mod files people read should be the same as the ones used during the build.
     # If a build-related command would update either, go mod tidy will also do so.
