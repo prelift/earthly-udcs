@@ -4,10 +4,20 @@
 
 VERSION 0.6
 
+# A User-Defined Command that builds a single Go module.
+#
+# It makes attempts at enforcing best practices and keeping the build _fast_.
 MODULE:
     COMMAND
 
+    # `golang` is a good default builder image.
+    #
+    # You might want to change it ex, when you have C dependencies and care about whhich libc is used.
     ARG BUILDER_IMAGE=golang
+
+    # The tag for the builder image is required.
+    #
+    # You should know which version of the Go toolchain (and any other depdendencies) you need.
     ARG --required BUILDER_TAG
 
     # CGo can be indispensable, but it makes maintenance more complicated.
