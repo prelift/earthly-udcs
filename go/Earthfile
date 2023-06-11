@@ -82,8 +82,8 @@ MODULE:
     RUN (cd ./src && go build -v ./...)
 
     # Run tests of the module.
-    RUN (cd ./src && go test -shuffle=on ./...)
-    RUN --no-cache git diff --no-index ./src ./original-src
+    RUN --no-cache (cd ./src && go test -shuffle=on ./...)
+    RUN git diff --no-index ./src ./original-src
 
 BINARY:
     COMMAND
