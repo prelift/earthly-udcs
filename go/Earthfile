@@ -134,4 +134,9 @@ BINARY:
         ENV GOARCH=$GOARCHs
     END
 
-    RUN go build -trimpath -o $OUTPUT $PACKAGE@$REVISION
+    ENV GOBIN=/go-work/bin
+
+    RUN go install -trimpath $PACKAGE@$REVISION
+
+    RUN mkdir -p "$(dirname "$OUTPUT")"
+    RUN cp "$GOBIN/$(basename $PACKAGE)" "$OUTPUT"
