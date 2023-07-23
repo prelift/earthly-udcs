@@ -115,6 +115,7 @@ BINARY:
 
     WORKDIR /go-work
 
+    ENV GO111MODULE=on
     ENV CGO_ENABLED=$ENV_CGO_ENABLED
 
     # IF [ -n "$REVISION" ]
