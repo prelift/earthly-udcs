@@ -105,6 +105,9 @@ BINARY:
     ARG --required OUTPUT
     ARG REVISION
 
+    ARG GOOS
+    ARG GOARCH
+
     # CGo can be indispensable, but it makes maintenance more complicated.
     ARG ENV_CGO_ENABLED=0
 
@@ -120,6 +123,14 @@ BINARY:
         ENV REVISION=$EARTHLY_GIT_BRANCH
     ELSE IF [ -n "$EARTHLY_GIT_HASH" ]
         ENV REVISION=$EARTHLY_GIT_HASH
+    END
+
+    IF [ -n "$GOOS" ]
+        ENV GOOS=$GOOS
+    END
+
+    IF [ -n "$GOARCH" ]
+        ENV GOARCH=$GOARCHs
     END
 
     RUN go build -trimpath -o $OUTPUT $PACKAGE@$REVISION
