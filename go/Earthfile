@@ -4,7 +4,7 @@
 
 VERSION 0.6
 
-# A User-Defined Command that builds a single Go module.
+# MODULE is a User-Defined Command that builds a single Go module.
 #
 # It makes attempts at enforcing best practices and keeping the build _fast_.
 MODULE:
@@ -13,12 +13,8 @@ MODULE:
     # `golang` is a good default builder image.
     #
     # You might want to change it ex, when you have C dependencies and care about whhich libc is used.
-    ARG BUILDER_IMAGE=golang
+    ARG BUILDER=golang:latest
 
-    # The tag for the builder image is required.
-    #
-    # You should know which version of the Go toolchain (and any other depdendencies) you need.
-    ARG --required BUILDER_TAG
 
     # CGo can be indispensable, but it makes maintenance more complicated.
     ARG ENV_CGO_ENABLED=0
@@ -98,8 +94,7 @@ MODULE:
 BINARY:
     COMMAND
 
-    ARG BUILDER_IMAGE=golang
-    ARG --required BUILDER_TAG
+    ARG BUILDER=golang:latest
 
     ARG --required PACKAGE
     ARG --required OUTPUT
@@ -111,7 +106,7 @@ BINARY:
     # CGo can be indispensable, but it makes maintenance more complicated.
     ARG ENV_CGO_ENABLED=0
 
-    FROM $BUILDER_IMAGE:$BUILDER_TAG
+    FROM $BUILDER
 
     WORKDIR /go-work
 
